@@ -9,6 +9,8 @@ from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
 from HomeWork_1.util import init_driver, START_DATE, END_DATE, THREAD_WORKERS
+from time_tracking import measure_time
+
 
 years = list(range(START_DATE, END_DATE))
 columns = [
@@ -67,6 +69,7 @@ def process_symbol(symbol):
     return pd.concat(symbol_data, ignore_index=True) if symbol_data else None
 
 
+@measure_time
 def main():
     driver = init_driver()
     driver.get('https://www.mse.mk/mk/stats/symbolhistory/REPL')
