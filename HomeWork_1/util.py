@@ -24,7 +24,6 @@ def init_driver():
     return driver
 
 
-# Connect to MySQL Database
 def connect_db():
     return mysql.connector.connect(
         host=os.getenv('DB_HOST'),
