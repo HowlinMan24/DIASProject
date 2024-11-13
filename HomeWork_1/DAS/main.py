@@ -1,25 +1,22 @@
-from filters import extract_issuers, check_last_date_in_db, fetch_missing_data
-from time_tracking import measure_time
-from util import connect_db, insert_stock_data
+import asyncio
+import time
+from stock_data_scraper import get_stock_codes, scrape_all_stock_codes
+from data import load_data, save_data
 
+async def main():
+    s_time = time.time()
+    all_stock_codes = get_stock_codes()
+    print(f"Бројот на издавачи е: {len(all_stock_codes)}")
 
-@measure_time
-def main():
-    db_connection = connect_db()
+    existing_df = load_data()
+    new_data = await scrape_all_stock_codes(all_stock_codes)
 
-    issuers = extract_issuers()
+    if new_data:
+        save_data(new_data, existing_df)
 
-    for issuer in issuers:
-        last_date = check_last_date_in_db(issuer, db_connection)
+    end_time = time.time()
+    duration = end_time - s_time
+    minutes = duration / 60
+    print(f"Преземањето на податоци трае: {minutes:.2f} минути.")
 
-        if last_date:
-            missing_data = fetch_missing_data(issuer, last_date, db_connection)
-            insert_stock_data(issuer, missing_data, db_connection)
-        else:
-            print(f"No data found for {issuer}")
-
-    db_connection.close()
-
-
-if __name__ == "__main__":
-    main()
+asyncio.run(main())
