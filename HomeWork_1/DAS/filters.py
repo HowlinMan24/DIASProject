@@ -6,7 +6,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-from HomeWork_1.util import init_driver
+from HomeWork_1.DAS.util import init_driver
 
 
 def extract_issuers():

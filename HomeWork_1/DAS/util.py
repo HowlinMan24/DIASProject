@@ -12,7 +12,7 @@ load_dotenv(dotenv_path=Path(__file__).parent.parent / '.env')
 # STATIC VARIABLES
 START_DATE = 2014
 END_DATE = 2024
-THREAD_WORKERS = 5
+THREAD_WORKERS = 100
 LIMIT_DATA_ROWS = 10000
 
 

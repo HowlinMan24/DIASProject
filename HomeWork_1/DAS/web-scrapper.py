@@ -8,7 +8,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
-from HomeWork_1.util import init_driver, START_DATE, END_DATE, THREAD_WORKERS
+from HomeWork_1.DAS.util import init_driver, START_DATE, END_DATE, THREAD_WORKERS
 from time_tracking import measure_time
 
 
@@ -29,6 +29,7 @@ def process_symbol(symbol):
     symbol_data = []
 
     for year in years:
+        print("This is the year of frhjkev")
         from_date = f'01.01.{year}'
         to_date = f'31.12.{year}'
 
