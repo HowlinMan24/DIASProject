@@ -99,6 +99,7 @@ def main():
         final_df.to_csv('stock_data_all_options.csv', index=False)
     else:
         print("No data was retrieved.")
+        print(" ")
 
 
 if __name__ == "__main__":
