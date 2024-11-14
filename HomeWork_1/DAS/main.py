@@ -1,25 +1,25 @@
-from filters import extract_issuers, check_last_date_in_db, fetch_missing_data
-from time_tracking import measure_time
-from util import connect_db, insert_stock_data
+import asyncio
+import time
+
+from data import load_data, save_data
+from stock_scraper import get_stock_codes, scrape_all_stock_codes
 
 
-@measure_time
-def main():
-    db_connection = connect_db()
+async def main():
+    start_time = time.time()
+    stock_codes = get_stock_codes()
+    print(f"Brojot na izdavaci  е: {len(stock_codes)}")
 
-    issuers = extract_issuers()
+    existing_df = load_data()
+    new_data = await scrape_all_stock_codes(stock_codes)
 
-    for issuer in issuers:
-        last_date = check_last_date_in_db(issuer, db_connection)
+    if new_data:
+        save_data(new_data, existing_df)
 
-        if last_date:
-            missing_data = fetch_missing_data(issuer, last_date, db_connection)
-            insert_stock_data(issuer, missing_data, db_connection)
-        else:
-            print(f"No data found for {issuer}")
-
-    db_connection.close()
+    end_time = time.time()
+    duration = end_time - start_time
+    minutes = duration / 60
+    print(f"Prezemanjeto na podatoci e: {minutes:.2f} min.")
 
 
-if __name__ == "__main__":
-    main()
+asyncio.run(main())

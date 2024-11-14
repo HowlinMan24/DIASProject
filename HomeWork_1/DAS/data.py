@@ -1,7 +1,10 @@
-import pandas as pd
 import os
-from config import historical_records_file_
-from datetime import datetime, timedelta
+
+import pandas as pd
+
+from cfg import historical_records_file
+
+
 def load_data():
     if os.path.exists(historical_records_file):
         df = pd.read_csv(historical_records_file, dayfirst=True)
@@ -10,6 +13,7 @@ def load_data():
         df['Датум'] = df['Датум'].dt.strftime('%d.%m.%Y')
         return df
     return pd.DataFrame()
+
 
 def save_data(data, existing_df):
     if data:
@@ -22,7 +26,3 @@ def save_data(data, existing_df):
             subset=['Код на издавач', 'Датум'])
         combined_df.to_csv(historical_records_file, index=False, encoding='utf-8-sig')
         print(f"Data saved to {historical_records_file}")
-
-end_date = datetime.now().strftime("%d.%m.%Y")
-start_date = (datetime.now() - timedelta(days=365 * 10)).strftime("%d.%m.%Y")
-historical_records_file = 'mse_historical_data.csv'
