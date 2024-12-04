@@ -1,0 +1,22 @@
+<!-- analysis.component.html -->
+<div class="container mx-auto p-4">
+  <h2 class="text-3xl font-semibold mb-6 text-gray-800">Stock Analysis</h2>
+
+  <!-- Dropdown to select stock symbol or publisher code -->
+  <div class="mb-6">
+    <label for="codeSelect" class="text-lg font-medium text-gray-700">Select Stock</label>
+    <select [(ngModel)]="selectedCode" (change)="fetchStockData()" id="codeSelect" class="mt-2 block w-full border border-gray-300 rounded-lg p-2">
+      <option *ngFor="let stock of stockList" [value]="stock">{{ stock }}</option>
+    </select>
+    <label for="codeType" class="text-lg font-medium text-gray-700 mt-4">Select Type</label>
+    <select [(ngModel)]="selectedCodeType" (change)="fetchStockData()" id="codeType" class="mt-2 block w-full border border-gray-300 rounded-lg p-2">
+      <option value="stockSymbol">Stock Symbol</option>
+      <option value="publisherCode">Publisher Code</option>
+    </select>
+  </div>
+
+  <!-- Candlestick chart container -->
+  <div>
+    <canvas id="candlestickChart" width="400" height="200"></canvas>
+  </div>
+</div>

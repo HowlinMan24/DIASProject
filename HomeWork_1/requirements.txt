@@ -1,0 +1,7 @@
+pandas
+selenium
+bs4
+aiohttp
+requests
+dotenv
+mysql
