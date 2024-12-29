@@ -1,13 +1,12 @@
-import express, {Request, Response} from 'express';
+import express, {NextFunction, Request, Response} from 'express';
 import cors from 'cors';
-import helmet from 'helmet';
+import bcrypt from 'bcrypt';
 import {Sequelize, SequelizeOptions} from 'sequelize-typescript';
-import * as fs from "node:fs";
-import csvParser from "csv-parser";
-import StockData from "./models/StockData";
-import HistoricalStockData from "./models/HistoricalStockData";
-import path from "node:path";
+import StockData from "../models/StockData";
+import HistoricalStockData from "../models/HistoricalStockData";
 import bodyParser from "body-parser";
+import {comparePassword, createToken, getParsedToken} from "../utils/jwtUtils";
+import User from "../models/User";
 
 const sequelize = new Sequelize({
     dialect: 'mysql',
@@ -16,7 +15,7 @@ const sequelize = new Sequelize({
     port: 3306,
     username: 'root',
     password: 'Makedonija.2023',
-    models: [HistoricalStockData,StockData],
+    models: [HistoricalStockData, StockData],
     logging: console.log
 } as SequelizeOptions);
 
@@ -27,12 +26,15 @@ sequelize.authenticate().then(() => {
 });
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: 'http://localhost:4200'
+}));
 app.use(bodyParser.json());
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
     next();
 });
+app.use(express.json())
 
 const port: number = 3600;
 
@@ -44,6 +46,8 @@ app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
 
+
+// TODO make this only happen on init method one time. If there is not one just uncomment it on the first run then re comment it again
 // async function loadCsvData(csvFilePath: string, csvFilePath2: string) {
 //     const results: any[] = [];
 //     const results2: any[] = [];
@@ -122,6 +126,65 @@ app.listen(port, () => {
 // Load CSV data into the database
 // loadCsvData(filePath1, filePath2);
 
+app.post('/api/login', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const user = await User.findOne({ where: { email: req.body.email } });
+        if (!user) {
+            throw new Error("Invalid credentials");
+        }
+
+        const isPasswordValid = await comparePassword(req.body.password, user.password);
+        if (!isPasswordValid) {
+            throw new Error("Invalid credentials");
+        }
+
+        const token = createToken(user);
+        res.status(200).json({
+            user: user.dataValues,
+            token,
+        });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+app.post('/api/createUser', async (req: Request, res: Response, next: NextFunction) => {
+    try {
+        const hashedPassword = await bcrypt.hash(req.body.password, 10);
+        const user = await User.create({
+            ...req.body,
+            password: hashedPassword,
+        });
+
+        const activationToken = createToken(user);
+        res.status(201).json({
+            user: user.dataValues,
+            token: activationToken,
+        });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
+app.get('/api/confirm/:token', async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+        const decodedToken = await getParsedToken(req.params.token);
+        if (!decodedToken) {
+             res.status(400).json({ message: 'Invalid Token' });
+        }
+        const user = await User.findByPk(decodedToken.id);
+        if (!user) {
+             res.status(400).json({ message: 'Invalid User' });
+        }
+        res.status(200).json({ message: 'User has been confirmed' });
+    } catch (error) {
+        console.error(error);
+        next(error);
+    }
+});
+
 app.get('/api/stock-data', async (req, res) => {
     try {
         const stockData = await StockData.findAll({
@@ -130,7 +193,7 @@ app.get('/api/stock-data', async (req, res) => {
         res.json(stockData);
     } catch (error) {
         console.error('Error fetching stock data:', error);
-        res.status(500).json({ error: 'Failed to fetch stock data' });
+        res.status(500).json({error: 'Failed to fetch stock data'});
     }
 });
 
@@ -142,65 +205,54 @@ app.get('/api/historical-stock-data', async (req, res) => {
         res.json(historicalStockData);
     } catch (error) {
         console.error('Error fetching historical stock data:', error);
-        res.status(500).json({ error: 'Failed to fetch historical stock data' });
+        res.status(500).json({error: 'Failed to fetch historical stock data'});
     }
 });
 
 app.get('/api/stock-codes', async (req: Request, res: Response) => {
     try {
-        // Fetch distinct stock symbols from StockData table
         const stockSymbols = await StockData.findAll({
             attributes: ['stockSymbol'],
-            group: ['stockSymbol']  // Group by stockSymbol to get unique values
+            group: ['stockSymbol']
         });
-
-        // Fetch distinct publisher codes from HistoricalStockData table
         const publisherCodes = await HistoricalStockData.findAll({
             attributes: ['publisherCode'],
-            group: ['publisherCode']  // Group by publisherCode to get unique values
+            group: ['publisherCode']
         });
-
-        // Send back both stock symbols and publisher codes
         res.json({
             stockSymbols: stockSymbols.map(item => item.stockSymbol),
             publisherCodes: publisherCodes.map(item => item.publisherCode)
         });
     } catch (error) {
         console.error('Error fetching stock codes:', error);
-        res.status(500).json({ error: 'Failed to fetch stock codes' });
+        res.status(500).json({error: 'Failed to fetch stock codes'});
     }
 });
 
-
-
-// In your express routes for stock data
 app.get('/api/stock-data', async (req, res) => {
-    const { code } = req.query;
-
+    const {code} = req.query;
     try {
         const stockData = await StockData.findAll({
-            where: { stockSymbol: code },
+            where: {stockSymbol: code},
             limit: 2000,
         });
         res.json(stockData);
     } catch (error) {
         console.error('Error fetching stock data:', error);
-        res.status(500).json({ error: 'Failed to fetch stock data' });
+        res.status(500).json({error: 'Failed to fetch stock data'});
     }
 });
 
 app.get('/api/historical-stock-data', async (req, res) => {
-    const { code } = req.query;
-
-
+    const {code} = req.query;
     try {
         const historicalStockData = await HistoricalStockData.findAll({
-            where: { publisherCode: code.toString() },
+            where: {publisherCode: code.toString()},
             limit: 2000,
         });
         res.json(historicalStockData);
     } catch (error) {
         console.error('Error fetching historical stock data:', error);
-        res.status(500).json({ error: 'Failed to fetch historical stock data' });
+        res.status(500).json({error: 'Failed to fetch historical stock data'});
     }
 });

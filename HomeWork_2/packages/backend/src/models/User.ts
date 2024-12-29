@@ -9,6 +9,12 @@ export default class User extends Model<User> {
 
     @Column({
         allowNull: false,
+        type: DataType.NUMBER, // Match STRING(255) from migration
+    })
+    declare id: number;
+
+    @Column({
+        allowNull: false,
         type: DataType.STRING(255), // Match STRING(255) from migration
     })
     declare username: string;

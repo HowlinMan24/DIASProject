@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { Chart, registerables } from 'chart.js';
 import { CandlestickController, CandlestickElement } from 'chartjs-chart-financial';
-import {StockService} from '../../services/stocks.service';
+import {StockService} from '../../services/routes/stocks.service';
 import 'chartjs-adapter-date-fns';
 
 // Register chartjs and the financial chart types

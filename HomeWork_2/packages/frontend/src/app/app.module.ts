@@ -16,6 +16,9 @@ import { UsersComponent } from './components/users/users.component';
 import {TableModule} from 'primeng/table';
 import {HttpClientModule} from '@angular/common/http';
 import {PaginatorModule} from 'primeng/paginator';
+import { LoginComponent } from './components/login/login.component';
+import { RegisterComponent } from './components/register/register.component';
+import {ReactiveFormsModule} from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -30,13 +33,16 @@ import {PaginatorModule} from 'primeng/paginator';
     AnalysisComponent,
     DownloadComponent,
     UsersComponent,
+    LoginComponent,
+    RegisterComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
     TableModule,
     HttpClientModule,
-    PaginatorModule
+    PaginatorModule,
+    ReactiveFormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

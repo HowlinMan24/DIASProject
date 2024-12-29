@@ -11,12 +11,15 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
     "commander": "^12.1.0",
     "cors": "^2.8.5",
     "csv-parser": "^3.0.0",
     "express": "^4.21.1",
     "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.11.5",
     "passport": "^0.7.0",
     "sequelize": "^6.37.5",
@@ -25,8 +28,11 @@
     "typescript": "^5.7.2"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
+    "@types/bcryptjs": "^2.4.6",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
+    "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.10.1"
   }
 }
