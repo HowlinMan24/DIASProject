@@ -1,0 +1,67 @@
+<div class="flex justify-center items-center min-h-screen bg-gray-50">
+  <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
+    <h2 class="text-3xl font-semibold text-center mb-6">Register</h2>
+
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+
+      <div class="mb-4">
+        <label for="username" class="block text-gray-700 font-medium mb-2">Username</label>
+        <input
+          id="username"
+          formControlName="username"
+          type="text"
+          class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <div *ngIf="username?.invalid && username?.touched" class="text-red-500 text-sm mt-1">
+          Username is required (min. 3 characters)
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label for="email" class="block text-gray-700 font-medium mb-2">Email</label>
+        <input
+          id="email"
+          formControlName="email"
+          type="email"
+          class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <div *ngIf="email?.invalid && email?.touched" class="text-red-500 text-sm mt-1">
+          Please enter a valid email
+        </div>
+      </div>
+
+      <div class="mb-4">
+        <label for="password" class="block text-gray-700 font-medium mb-2">Password</label>
+        <input
+          id="password"
+          formControlName="password"
+          type="password"
+          class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <div *ngIf="password?.invalid && password?.touched" class="text-red-500 text-sm mt-1">
+          Password is required (min. 6 characters)
+        </div>
+      </div>
+
+      <div class="mb-6">
+        <label for="confirmPassword" class="block text-gray-700 font-medium mb-2">Confirm Password</label>
+        <input
+          id="confirmPassword"
+          formControlName="confirmPassword"
+          type="password"
+          class="w-full p-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+        <div *ngIf="confirmPassword?.invalid && confirmPassword?.touched" class="text-red-500 text-sm mt-1">
+          Confirm Password is required
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        class="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-300"
+        [disabled]="registerForm.invalid">
+        Register
+      </button>
+    </form>
+  </div>
+</div>
