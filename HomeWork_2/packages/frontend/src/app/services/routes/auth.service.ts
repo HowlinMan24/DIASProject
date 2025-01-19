@@ -4,6 +4,7 @@ import {BehaviorSubject, Observable, tap} from 'rxjs';
 import {Router} from '@angular/router';
 import {envApi} from '../../utils/env.utils';
 import {AbstractApiService} from './abstract.api.service';
+import {IUser} from '../../../../../shared/models/IUser';
 
 @Injectable({
   providedIn: 'root'
@@ -15,8 +16,8 @@ export class AuthService extends AbstractApiService {
 
   constructor(private http: HttpClient, private router: Router) {
     super();
-    const storedUser = localStorage.getItem('currentUser');
-    this.currentUserSubject = new BehaviorSubject<any>(storedUser ? JSON.parse(storedUser) : null);
+    const token = localStorage.getItem('token');
+    this.currentUserSubject = new BehaviorSubject<any>(token ? JSON.parse(token) : null);
     this.currentUser = this.currentUserSubject.asObservable();
   }
 
@@ -25,7 +26,7 @@ export class AuthService extends AbstractApiService {
       .pipe(
         tap(user => {
           if (user && user.token) {
-            localStorage.setItem('currentUser', JSON.stringify(user));
+            localStorage.setItem('token', JSON.stringify(user.token));
             this.currentUserSubject.next(user);
           }
         })
@@ -33,13 +34,14 @@ export class AuthService extends AbstractApiService {
   }
 
   logout(): void {
-    localStorage.removeItem('currentUser');
+    localStorage.removeItem('token');
     this.currentUserSubject.next(null);
     this.router.navigate(['/login']);
   }
 
-  register(username: string, email: string, password: string): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/createUser`, {username, email, password}, {headers: this.getAuthHeaders()});
+  register(username: string, email: string, password: string) {
+    console.log(`${this.apiUrl}/create-user`)
+    return this.http.post<any>(`http://localhost:3600/api/create-user`, {username, email, password});
   }
 
   get currentUserValue(): any {

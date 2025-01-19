@@ -1,5 +1,4 @@
-import { Column, Model, Table, CreatedAt, UpdatedAt, PrimaryKey, AutoIncrement } from 'sequelize-typescript';
-import { DataType } from 'sequelize-typescript'; // Ensure this import is present
+import {Column, CreatedAt, DataType, Model, Table, UpdatedAt} from 'sequelize-typescript'; // Ensure this import is present
 
 @Table({ tableName: 'stock_data', timestamps: true })
 export default class StockData extends Model {

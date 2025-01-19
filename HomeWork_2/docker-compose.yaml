@@ -1,0 +1,94 @@
+services:
+
+  backend:
+    build:
+      context: .
+      dockerfile: DockerFile-backend
+    container_name: DIAS-backend
+    restart: always
+    ports:
+      - "127.0.0.1:3500:3500"
+    command: npm run start-${ENVIRONMENT}
+
+  nginx:
+    build:
+      context: .
+      dockerfile: DockerFile-nginx
+      args:
+        environment: ${ENVIRONMENT}
+    container_name: nginx-reverse-proxy
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    volumes:
+      - nginx-letsencrypt:/etc/letsencrypt
+#      - type: bind
+#        source: ./.htpasswd
+#        target: /etc/nginx/.htpasswd
+
+  db:
+    image: mysql:8
+    restart: always
+    ports:
+      - "3306:3306"
+    container_name: DIAS-db
+    command: --mysql-native-password=ON --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_HOST: "%"
+      MYSQL_DATABASE: ${DB_DATABASE}
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  auth-service:
+      build:
+        context: .
+        dockerfile: Dockerfile-auth
+      container_name: Auth-Service
+      ports:
+        - "4001:4001"
+      environment:
+        - SERVICE_MESSAGE=Hello from Auth Service (Configured via ENV)
+
+  user-service:
+      build:
+        context: .
+        dockerfile: Dockerfile-userservice
+      container_name: User-Service
+      ports:
+        - "4002:4002"
+      environment:
+        - SERVICE_MESSAGE=Hello from User Service (Configured via ENV)
+
+  stocks-service:
+      build:
+        context: .
+        dockerfile: Dockerfile-stockdata
+      container_name: Stock-Service
+      ports:
+        - "4003:4003"
+      environment:
+        - SERVICE_MESSAGE=Hello from Stocks Service (Configured via ENV)
+
+  api-gateway:
+      build:
+        context: .
+        dockerfile: Dockerfile-api
+      container_name: Api-Service
+      ports:
+        - "4004:4004"
+      depends_on:
+        - auth-service
+        - user-service
+        - stocks-service
+      environment:
+        - SERVICE_MESSAGE=Hello from API-GATEWAY Service (Configured via ENV)
+
+volumes:
+  mysql_data:
+  nginx-letsencrypt:

@@ -25,123 +25,42 @@ sequelize.authenticate().then(() => {
     console.error('Database connection failed:', err);
 });
 
+const port: number = 3600;
 const app = express();
 app.use(cors({
-    origin: 'http://localhost:4200'
-}));
+    origin: 'http://localhost:4200',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization'] })
+);
 app.use(bodyParser.json());
 app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization, TimezoneOffset");
+    res.header('Access-Control-Allow-Methods', 'PUT, POST, GET, DELETE, OPTIONS');
     next();
 });
 app.use(express.json())
-
-const port: number = 3600;
-
-app.get('/', (req: Request, res: Response) => {
-    res.send('Hello, TypeScript + Node.js + Express!');
+app.use((req, res, next) => {
+    console.log(`Received ${req.method} request for ${req.url}`);
+    next();
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`);
-});
-
-
-// TODO make this only happen on init method one time. If there is not one just uncomment it on the first run then re comment it again
-// async function loadCsvData(csvFilePath: string, csvFilePath2: string) {
-//     const results: any[] = [];
-//     const results2: any[] = [];
-//
-//     fs.createReadStream(csvFilePath)
-//         .pipe(csvParser())
-//         .on('data', (data) => {
-//             results.push(data);
-//         })
-//         .on('end', async () => {
-//             for (const stock_data of results) {
-//                 console.log("Inserting row into stock_data:", stock_data); // Log the data
-//                 let date = stock_data['Датум'].split(".")
-//                 let refined = new Date(`${date[0] + '-' + date[1] + '-' + date[2]}`);
-//                 const mappedStockData = {
-//                     datePublished: new Date(refined),
-//                     priceLastTransaction: parseFloat(stock_data['Цена на последна трансакција']),
-//                     minPrice: parseFloat(stock_data['Мин.']),
-//                     maxPrice: parseFloat(stock_data['Мак.']),
-//                     averagePrice: parseFloat(stock_data['Просечна цена']),
-//                     promotionPercentage: parseFloat(stock_data['%пром.']),
-//                     quantity: parseInt(stock_data['Количина'], 10),
-//                     turnoverBESTDenar: parseFloat(stock_data['Промет во БЕСТ во денари']),
-//                     totalTurnoverDenars: parseFloat(stock_data['Вкупен промет во денари']),
-//                     stockSymbol: stock_data['Stock Symbol'],
-//                     created_at: new Date(),
-//                     updated_at: new Date()
-//                 };
-//                 try {
-//                     await StockData.create(mappedStockData);
-//                     console.log('Data inserted successfully!');
-//                 } catch (error) {
-//                     console.error('Error inserting data into stock_data:', error);
-//                 }
-//             }
-//         });
-//
-//     fs.createReadStream(csvFilePath2)
-//         .pipe(csvParser())
-//         .on('data', (data) => {
-//             results2.push(data);
-//         })
-//         .on('end', async () => {
-//             for (const stock_data of results2) {
-//                 console.log("Inserting row into historical_stock_data:", stock_data['Код на издавач']); // Log the data
-//                 let date = stock_data['Датум'].split(".")
-//                 let refined = new Date(`${date[0] + '-' + date[1] + '-' + date[2]}`);
-//                 const mappedStockData = {
-//                     publisherCode: stock_data['﻿Код на издавач'],
-//                     datePublished: new Date(refined), // Ensure valid Date object
-//                     priceLastTransaction: parseFloat(stock_data['Цена на последна трансакција']),
-//                     minPrice: parseFloat(stock_data['Мин.']),
-//                     maxPrice: parseFloat(stock_data['Мак.']),
-//                     averagePrice: parseFloat(stock_data['Просечна цена']),
-//                     promotionPercentage: parseFloat(stock_data['%пром.']),
-//                     quantity: parseInt(stock_data['Количина'], 10),
-//                     turnoverBESTDenar: parseFloat(stock_data['Промет во БЕСТ во денари']),
-//                     totalTurnoverDenars: parseFloat(stock_data['Вкупен промет во денари']),
-//                     created_at: new Date(),
-//                     updated_at: new Date()
-//                 };
-//                 try {
-//                     await HistoricalStockData.create(mappedStockData);
-//                     console.log('Data inserted successfully!');
-//                 } catch (error) {
-//                     console.error('Error inserting data into historical_stock_data:', error);
-//                 }
-//             }
-//         });
-// }
-
-// Path to your CSV file
-// const filePath1 = path.resolve(__dirname, '../../../../../DIASProject/HomeWork_1/data_all_codes.csv');
-// const filePath2 = path.resolve(__dirname, '../../../../../DIASProject/HomeWork_1/mse_historical_data.csv');
-
-// Load CSV data into the database
-// loadCsvData(filePath1, filePath2);
-
-app.post('/api/login', async (req: Request, res: Response, next: NextFunction) => {
+app.post('/api/create-user', async (req: Request, res: Response, next: NextFunction) => {
+    console.log("COmes to backend")
     try {
-        const user = await User.findOne({ where: { email: req.body.email } });
-        if (!user) {
-            throw new Error("Invalid credentials");
-        }
+        console.log("Comes to create user end point")
+        const { username, email, password } = req.body;
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const user = await User.create({
+            username: username,
+            email: email,
+            password: hashedPassword,
+        });
 
-        const isPasswordValid = await comparePassword(req.body.password, user.password);
-        if (!isPasswordValid) {
-            throw new Error("Invalid credentials");
-        }
-
-        const token = createToken(user);
-        res.status(200).json({
-            user: user.dataValues,
-            token,
+        const activationToken = createToken(user);
+        res.status(201).json({
+            user: user,
+            token: activationToken,
         });
     } catch (error) {
         console.error(error);
@@ -149,18 +68,20 @@ app.post('/api/login', async (req: Request, res: Response, next: NextFunction) =
     }
 });
 
-app.post('/api/createUser', async (req: Request, res: Response, next: NextFunction) => {
+app.post('/api/login', async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const hashedPassword = await bcrypt.hash(req.body.password, 10);
-        const user = await User.create({
-            ...req.body,
-            password: hashedPassword,
-        });
-
-        const activationToken = createToken(user);
-        res.status(201).json({
+        const user = await User.findOne({ where: { email: req.body.email } });
+        if (!user) {
+            throw new Error("Invalid credentials");
+        }
+        const isPasswordValid = await comparePassword(req.body.password, user.password);
+        if (!isPasswordValid) {
+            throw new Error("Invalid credentials");
+        }
+        const token = createToken(user);
+        res.status(200).json({
             user: user.dataValues,
-            token: activationToken,
+            token,
         });
     } catch (error) {
         console.error(error);
@@ -255,4 +176,22 @@ app.get('/api/historical-stock-data', async (req, res) => {
         console.error('Error fetching historical stock data:', error);
         res.status(500).json({error: 'Failed to fetch historical stock data'});
     }
+});
+
+app.get('/', (req: Request, res: Response) => {
+    res.send('Hello, TypeScript + Node.js + Express!');
+});
+
+app.get('/hello', (req, res) => {
+    const message = req.query.message || process.env.SERVICE_MESSAGE || 'Hello from the Auth Service!';
+    console.log(`Message: ${message}`);
+    res.send(message);
+});
+
+app.listen(port, '0.0.0.0', () => {
+    console.log(`Server is running on http://localhost:${port}`);
+});
+
+app.get('/health', (req: Request, res: Response) => {
+    res.status(200).json({ message: 'Service is healthy' });
 });
